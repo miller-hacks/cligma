@@ -13,8 +13,6 @@ import (
 	"github.com/franela/goreq"
 )
 
-const URL = "https://huigma.com/"
-
 type PostParams struct {
 	Content  string `json:"content"`
 	Num      int    `json:"num"`
@@ -34,7 +32,7 @@ type PostResponse struct {
 func get(c *cli.Context, hash string) {
 
 	resp, err := goreq.Request{
-		Uri:     strings.TrimSuffix(c.GlobalString("url"), "/") + "/" + hash,
+		Uri:     strings.TrimSuffix(c.GlobalString("url"), "/") + "/api/" + hash,
 		Timeout: time.Duration(c.GlobalInt("timeout")) * time.Second,
 	}.Do()
 
@@ -43,7 +41,7 @@ func get(c *cli.Context, hash string) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Fatalln("Error:", err)
+		log.Fatalln("Error:", resp.StatusCode)
 	}
 
 	var response GetResponse
@@ -77,13 +75,19 @@ func post(c *cli.Context) {
 	}
 
 	resp, err := goreq.Request{
-		Uri:         c.GlobalString("url") + "/api",
+		Uri:         strings.TrimSuffix(c.GlobalString("url"), "/") + "/api",
+		Method:      "POST",
 		Accept:      "application/json",
 		ContentType: "application/json",
 		Body:        item,
 	}.Do()
+
 	if err != nil {
 		log.Fatalln("Error in post:", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Fatalln("Error:", resp.StatusCode)
 	}
 
 	var response PostResponse
@@ -103,7 +107,7 @@ func main() {
 	app.Usage = "console client for Huigma service"
 
 	timeoutFlag := cli.IntFlag{Name: "timeout, t", Value: 3, Usage: "timeout"}
-	urlFlag := cli.StringFlag{Name: "url, u", Value: URL, Usage: "url of Huigma service"}
+	urlFlag := cli.StringFlag{Name: "url, u", Value: "https://huigma.com/", Usage: "url of Huigma service"}
 
 	app.Flags = []cli.Flag{
 		urlFlag,
