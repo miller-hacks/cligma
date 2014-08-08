@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 
-	term "github.com/andrew-d/go-termutil"
+	"code.google.com/p/go.crypto/ssh/terminal"
 	"github.com/codegangsta/cli"
 	"github.com/franela/goreq"
 )
@@ -57,7 +58,8 @@ func post(c *cli.Context) {
 
 	var err error
 	var bytes []byte
-	if !term.Isatty(os.Stdin.Fd()) {
+
+	if !terminal.IsTerminal(syscall.Stdin) {
 		bytes, err = ioutil.ReadAll(os.Stdin)
 	} else {
 		bytes, err = ioutil.ReadFile(c.String("content"))
