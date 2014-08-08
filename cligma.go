@@ -16,7 +16,7 @@ import (
 type PostParams struct {
 	Content  string `json:"content"`
 	Num      int    `json:"num"`
-	Expire   string `json:"expire"`
+	Expire   int    `json:"expire"`
 	Callback string `json:"callback"`
 }
 
@@ -25,14 +25,14 @@ type GetResponse struct {
 }
 
 type PostResponse struct {
-	Link string
-	Hash string
+	Link string `json:"link"`
+	Key  string `json:"key"`
 }
 
-func get(c *cli.Context, hash string) {
+func get(c *cli.Context, key string) {
 
 	resp, err := goreq.Request{
-		Uri:     strings.TrimSuffix(c.GlobalString("url"), "/") + "/api/" + hash,
+		Uri:     strings.TrimSuffix(c.GlobalString("huigma"), "/") + "/api/" + key,
 		Timeout: time.Duration(c.GlobalInt("timeout")) * time.Second,
 	}.Do()
 
@@ -47,7 +47,7 @@ func get(c *cli.Context, hash string) {
 	var response GetResponse
 	err = resp.Body.FromJsonTo(&response)
 	if err != nil {
-		log.Fatalln("Error decoing JSON", err)
+		log.Fatalln("Error decoding JSON", err)
 	}
 
 	print(response.Content)
@@ -70,12 +70,12 @@ func post(c *cli.Context) {
 	item := PostParams{
 		Content:  string(bytes),
 		Num:      c.Int("num"),
-		Expire:   c.String("expire"),
+		Expire:   c.Int("expire"),
 		Callback: c.String("callback"),
 	}
 
 	resp, err := goreq.Request{
-		Uri:         strings.TrimSuffix(c.GlobalString("url"), "/") + "/api",
+		Uri:         strings.TrimSuffix(c.GlobalString("huigma"), "/") + "/api",
 		Method:      "POST",
 		Accept:      "application/json",
 		ContentType: "application/json",
@@ -93,7 +93,7 @@ func post(c *cli.Context) {
 	var response PostResponse
 	err = resp.Body.FromJsonTo(&response)
 	if err != nil {
-		log.Fatalln("Error decoing JSON", err)
+		log.Fatalln("Error decoding JSON", err)
 	}
 
 	println(response.Link)
@@ -106,56 +106,52 @@ func main() {
 	app.Name = "cligma"
 	app.Usage = "console client for Huigma service"
 
-	timeoutFlag := cli.IntFlag{Name: "timeout, t", Value: 3, Usage: "timeout"}
-	urlFlag := cli.StringFlag{Name: "url, u", Value: "https://huigma.com/", Usage: "url of Huigma service"}
-
 	app.Flags = []cli.Flag{
-		urlFlag,
-		timeoutFlag,
+		cli.IntFlag{
+			Name:  "timeout, t",
+			Value: 3,
+			Usage: "timeout",
+		},
+		cli.StringFlag{
+			Name:  "huigma, u",
+			Value: "https://huigma.com/",
+			Usage: "url of Huigma service",
+		},
+		cli.StringFlag{
+			Name:  "content, c",
+			Value: "",
+			Usage: "path to content",
+		},
+		cli.StringFlag{
+			Name:  "num, n",
+			Value: "",
+			Usage: "number of shows",
+		},
+		cli.IntFlag{
+			Name:  "expire, e",
+			Value: 3600 * 24,
+			Usage: "expires in",
+		},
+		cli.StringFlag{
+			Name:  "callback, b",
+			Value: "",
+			Usage: "callback url/email",
+		},
 	}
 
 	app.Commands = []cli.Command{
 		{
 			Name:  "get",
-			Usage: "get content by hash",
+			Usage: "get content by key",
 			Action: func(c *cli.Context) {
-				hash := c.Args().First()
-				get(c, hash)
-			},
-		},
-		{
-			Name:  "post",
-			Usage: "post content on Huigma",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "content, c",
-					Value: "",
-					Usage: "path to content",
-				},
-				cli.StringFlag{
-					Name:  "num, n",
-					Value: "",
-					Usage: "number of shows",
-				},
-				cli.StringFlag{
-					Name:  "expire, e",
-					Value: "",
-					Usage: "expires in",
-				},
-				cli.StringFlag{
-					Name:  "callback, b",
-					Value: "",
-					Usage: "callback url/email",
-				},
-			},
-			Action: func(c *cli.Context) {
-				post(c)
+				key := c.Args().First()
+				get(c, key)
 			},
 		},
 	}
 
 	app.Action = func(c *cli.Context) {
-		println("Type --help to see usage")
+		post(c)
 	}
 
 	app.Run(os.Args)
