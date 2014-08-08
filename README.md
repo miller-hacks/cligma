@@ -11,4 +11,4 @@ To install:
 go get github.com/miller-hacks/cligma
 ```
 
-Binaries will be added soon!
+Or just download binary for your platform [here](https://github.com/miller-hacks/cligma/releases)
