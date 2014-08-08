@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"syscall"
 	"time"
 
-	"code.google.com/p/go.crypto/ssh/terminal"
 	"github.com/codegangsta/cli"
 	"github.com/franela/goreq"
+	term "github.com/pebbe/util"
 )
 
 type PostParams struct {
@@ -59,7 +58,7 @@ func post(c *cli.Context) {
 	var err error
 	var bytes []byte
 
-	if !terminal.IsTerminal(syscall.Stdin) {
+	if !term.IsTerminal(os.Stdin) {
 		bytes, err = ioutil.ReadAll(os.Stdin)
 	} else {
 		bytes, err = ioutil.ReadFile(c.String("content"))
